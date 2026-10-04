@@ -1,0 +1,31 @@
+name: Go SDK CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        go: ['1.26.x', '1.27.x']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - name: Formatting
+        shell: bash
+        run: test -z "$(gofmt -l .)"
+      - run: go vet ./...
+      - run: go test -timeout 90s ./...
+      - run: go build ./...
+      - name: Race checks
+        if: runner.os == 'Linux'
+        run: go test -race -timeout 120s ./...
