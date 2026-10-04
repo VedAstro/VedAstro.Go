@@ -1,0 +1,61 @@
+name: Published module smoke
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Immutable release tag to verify
+        required: true
+        default: v1.0.0
+permissions:
+  contents: read
+jobs:
+  consumer:
+    runs-on: ubuntu-latest
+    env:
+      SDK_VERSION: ${{ inputs.version }}
+      GOPROXY: https://proxy.golang.org
+      GOSUMDB: sum.golang.org
+      GOWORK: 'off'
+    steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.x'
+          cache: false
+      - name: Install published module in a fresh consumer
+        run: |
+          mkdir consumer
+          cd consumer
+          go mod init example.com/vedastro-release-smoke
+          go get "github.com/VedAstro/VedAstro.Go@$SDK_VERSION"
+          go list -m -json github.com/VedAstro/VedAstro.Go
+          cat > main.go <<'EOF'
+          package main
+          import (
+              "context"
+              "fmt"
+              "log"
+              "os"
+              "time"
+              vedastro "github.com/VedAstro/VedAstro.Go"
+          )
+          func main() {
+              if vedastro.Version != os.Getenv("SDK_VERSION") {
+                  log.Fatalf("wrong compiled version: %s", vedastro.Version)
+              }
+              c := vedastro.NewClient("FreeAPIUser")
+              ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+              defer cancel()
+              info, err := c.CheckForUpdate(ctx)
+              if err != nil { log.Fatal(err) }
+              fmt.Printf("Release information: %+v\n", info)
+              birth, err := vedastro.NewTime("14:30 25/10/1992 +05:30",
+                  vedastro.NewGeoLocation("Mumbai", 72.8777, 19.076))
+              if err != nil { log.Fatal(err) }
+              result, err := c.PlanetRasiD1Sign(ctx, vedastro.PlanetSun, birth)
+              if err != nil { log.Fatal(err) }
+              sign, ok := result.(map[string]any)
+              if !ok || sign["Name"] != "Libra" { log.Fatalf("unexpected result: %#v", result) }
+              fmt.Printf("Published consumer smoke passed: %s, Sun in %v\n", vedastro.Version, sign["Name"])
+          }
+          EOF
+          go run .
