@@ -18,7 +18,7 @@ Results vary by calculator and may be objects, arrays, scalar values, or SVG str
 
 ## How do I cancel a call?
 
-Pass a context from `context.WithCancel` or `context.WithTimeout`. Use `errors.Is` to detect cancellation or deadline expiry. The default maximum is 120 seconds; `WithTimeout` changes it. HTTP and API failures use `*APIError`. Calls do not automatically retry.
+Pass a context from `context.WithCancel` or `context.WithTimeout`. Use `errors.Is` to detect cancellation or deadline expiry. There is **no deadline by default**: a calculation can take milliseconds or minutes, and the client cannot know what is acceptable for your workload, so a built-in limit would only ever truncate a valid answer. Add `WithTimeout` only when your own code has decided a call has run too long. HTTP and API failures use `*APIError`. Calls do not automatically retry.
 
 ## How do optional parameters work?
 

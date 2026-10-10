@@ -240,6 +240,37 @@ func TestInvalidConfiguration(t *testing.T) {
 	}
 }
 
+func TestNoDeadlineByDefault(t *testing.T) {
+	// A calculation can take milliseconds or minutes, so the client must not impose a deadline
+	// of its own. A server that answers slowly must therefore still succeed with no WithTimeout.
+	release := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-release
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"Status":"Pass","Payload":"ok"}`))
+	}))
+	defer server.Close()
+
+	slowButFine := make(chan error, 1)
+	go func() {
+		// No WithTimeout: the call should wait for the server rather than give up.
+		_, err := NewClient("", WithBaseURL(server.URL)).GetAvailableSourceTexts(context.Background())
+		slowButFine <- err
+	}()
+
+	select {
+	case err := <-slowButFine:
+		t.Fatalf("call returned before the server answered: %v", err)
+	case <-time.After(250 * time.Millisecond):
+		// Still waiting, as it should be: nothing cut it short.
+	}
+
+	close(release)
+	if err := <-slowButFine; err != nil {
+		t.Fatalf("slow call failed without a deadline: %v", err)
+	}
+}
+
 func TestGeneratedMethodSurface(t *testing.T) {
 	data, err := os.ReadFile("api_manifest.json")
 	if err != nil {

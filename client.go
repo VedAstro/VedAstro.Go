@@ -30,7 +30,7 @@ type Client struct {
 	apiKey     string
 	baseURL    string
 	httpClient *http.Client
-	timeout    time.Duration
+	timeout    *time.Duration
 	ayanamsa   Ayanamsa
 	configErr  error
 	updateURL  string
@@ -44,7 +44,7 @@ type ClientOption func(*Client)
 func NewClient(apiKey string, options ...ClientOption) *Client {
 	c := &Client{
 		apiKey: apiKey, baseURL: DefaultBaseURL, httpClient: &http.Client{},
-		timeout:   120 * time.Second,
+		timeout:   nil,
 		updateURL: "https://proxy.golang.org/github.com/!ved!astro/!ved!astro.!go/@latest",
 	}
 	for _, option := range options {
@@ -86,15 +86,20 @@ func WithHTTPClient(client *http.Client) ClientOption {
 	}
 }
 
-// WithTimeout sets the calculation deadline, including reading the response body.
-// An earlier deadline on the request context still takes precedence.
+// WithTimeout sets a calculation deadline, including reading the response body. An earlier
+// deadline on the request context still takes precedence.
+//
+// No deadline is applied by default, and that is deliberate: a VedAstro calculation can take
+// milliseconds or minutes, and this client cannot know what is acceptable for your workload, so a
+// built-in deadline would be brittle logic that can truncate a valid answer. Use this only when
+// your own code has decided a request has run too long.
 func WithTimeout(timeout time.Duration) ClientOption {
 	return func(c *Client) {
 		if timeout <= 0 {
 			c.configErr = errors.New("vedastro: timeout must be positive")
 			return
 		}
-		c.timeout = timeout
+		c.timeout = &timeout
 	}
 }
 
@@ -176,8 +181,13 @@ func (c *Client) call(ctx context.Context, endpoint string, parameters map[strin
 	if err != nil {
 		return nil, errors.New("vedastro: parameters cannot be encoded as API JSON")
 	}
-	ctx, cancel := context.WithTimeout(ctx, c.timeout)
-	defer cancel()
+	// Only apply a deadline when the caller asked for one: a calculation can take minutes, so
+	// imposing a default would truncate a valid answer.
+	if c.timeout != nil {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, *c.timeout)
+		defer cancel()
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/"+url.PathEscape(endpoint), strings.NewReader(string(encoded)))
 	if err != nil {
 		return nil, errors.New("vedastro: cannot create API request")

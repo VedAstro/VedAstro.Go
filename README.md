@@ -652,7 +652,6 @@ Each client owns its settings and is **safe for concurrent requests**. Options a
 
 ```go
 client := vedastro.NewClient(apiKey,
-	vedastro.WithTimeout(30*time.Second),
 	vedastro.WithDefaultAyanamsa(vedastro.AyanamsaLahiri),
 	vedastro.WithBaseURL("https://vedastro.zaishi.net/api/Calculate"),
 	vedastro.WithHTTPClient(customClient),
@@ -661,12 +660,39 @@ client := vedastro.NewClient(apiKey,
 
 | Option | Effect |
 |--------|--------|
-| `WithTimeout(d)` | Calculation deadline including reading the body (default 120s; an earlier context deadline still wins) |
 | `WithDefaultAyanamsa(v)` | Ayanamsa sent with this client's requests |
 | `WithBaseURL(url)` | Point at a different Calculate service or a test server |
 | `WithHTTPClient(c)` | Custom `*http.Client`; a shallow copy is retained |
+| `WithTimeout(d)` | Optional calculation deadline; **none is applied by default** (see below) |
 
 Invalid configuration is **reported by the first calculator call**, not by `NewClient` — so a bad base URL surfaces as an error from your request rather than a panic at startup.
+
+### ⏳ There is no request deadline by default
+
+Deliberately. A VedAstro calculation can take milliseconds or minutes depending on the endpoint and
+the load on the service, and a client library has no way to know what is acceptable for your
+workload. A built-in deadline would be exactly the kind of brittle logic that silently truncates a
+valid answer, so **no deadline is applied** unless you ask for one. If a call is still running, it
+is still working.
+
+`go doc`'s `http.Client` has no timeout either, which is why the client only wraps your context
+when you supply one:
+
+```go
+// A deadline, because *you* decided this call has run too long.
+client := vedastro.NewClient(apiKey, vedastro.WithTimeout(30*time.Second))
+```
+
+Cancellation still works exactly as Go expects — pass a context with a deadline, or cancel it, and
+the call stops:
+
+```go
+ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+defer cancel()
+```
+
+The difference is who decides: `WithTimeout` is the client's own deadline, while a context deadline
+is yours. Both are honoured if set, and whichever expires first wins.
 
 ---
 

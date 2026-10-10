@@ -21,4 +21,4 @@ Replace `"FreeAPIUser"` with `os.Getenv("VEDASTRO_API_KEY")` (add the `os` impor
 
 To run the other examples, clone this repository and run `go run ./examples/daily_panchanga` from its root. Most examples handle Ctrl+C and free-tier pacing. Set `VEDASTRO_API_KEY` in your shell to use a paid key.
 
-Read [README](README.md) for decoded result types, optional settings, ayanamsa, deadlines, and errors.
+Read [README](README.md) for decoded result types, optional settings, ayanamsa, cancellation, and errors.
