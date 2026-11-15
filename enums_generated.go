@@ -96,31 +96,43 @@ const (
 	AyanamsaLahiriIcrc         Ayanamsa = "LAHIRI_ICRC"
 )
 
+// BirdActivity names the server's BirdActivity values.
+type BirdActivity string
+
+const (
+	BirdActivityDying    BirdActivity = "Dying"
+	BirdActivitySleeping BirdActivity = "Sleeping"
+	BirdActivityWalking  BirdActivity = "Walking"
+	BirdActivityEating   BirdActivity = "Eating"
+	BirdActivityRuling   BirdActivity = "Ruling"
+)
+
+// BirdName names the server's BirdName values.
+type BirdName string
+
+const (
+	BirdNameVulture BirdName = "Vulture"
+	BirdNameOwl     BirdName = "Owl"
+	BirdNameCrow    BirdName = "Crow"
+	BirdNameCock    BirdName = "Cock"
+	BirdNamePeacock BirdName = "Peacock"
+)
+
+// BirthDatePrecision names the server's BirthDatePrecision values.
+type BirthDatePrecision string
+
+const (
+	BirthDatePrecisionYear  BirthDatePrecision = "Year"
+	BirthDatePrecisionMonth BirthDatePrecision = "Month"
+	BirthDatePrecisionDay   BirthDatePrecision = "Day"
+)
+
 // BirthTimeModelType names the server's BirthTimeModelType values.
 type BirthTimeModelType string
 
 const (
 	BirthTimeModelTypeNCC BirthTimeModelType = "NCC"
 	BirthTimeModelTypeKNN BirthTimeModelType = "KNN"
-)
-
-// JHoraDasaYearDefinition names the server's JHoraDasaYearDefinition values.
-type JHoraDasaYearDefinition string
-
-const (
-	JHoraDasaYearDefinitionMeanTropical JHoraDasaYearDefinition = "MeanTropical"
-	JHoraDasaYearDefinitionSavana       JHoraDasaYearDefinition = "Savana"
-	JHoraDasaYearDefinitionMeanSidereal JHoraDasaYearDefinition = "MeanSidereal"
-	JHoraDasaYearDefinitionTithi        JHoraDasaYearDefinition = "Tithi"
-)
-
-// ShoolaAntardasaMode names the server's ShoolaAntardasaMode values.
-type ShoolaAntardasaMode string
-
-const (
-	ShoolaAntardasaModeDasaSign                   ShoolaAntardasaMode = "DasaSign"
-	ShoolaAntardasaModeStrongerOppositeSign       ShoolaAntardasaMode = "StrongerOppositeSign"
-	ShoolaAntardasaModeStrongerSignsLordPlacement ShoolaAntardasaMode = "StrongerSignsLordPlacement"
 )
 
 // TripatakiObjectGroup names the server's TripatakiObjectGroup values.
@@ -192,30 +204,34 @@ const (
 	ConstellationNameRevathi      ConstellationName = "Revathi"
 )
 
-// DasaType names the server's DasaType values.
-type DasaType string
+// DasaSystem names the server's DasaSystem values.
+type DasaSystem string
 
 const (
-	DasaTypeVimshottari        DasaType = "Vimshottari"
-	DasaTypeAshtottari         DasaType = "Ashtottari"
-	DasaTypeShodshottari       DasaType = "Shodshottari"
-	DasaTypeDvadashottari      DasaType = "Dvadashottari"
-	DasaTypePanchottari        DasaType = "Panchottari"
-	DasaTypeShatabdika         DasaType = "Shatabdika"
-	DasaTypeChaturashitiSama   DasaType = "ChaturashitiSama"
-	DasaTypeDwisaptatiSama     DasaType = "DwisaptatiSama"
-	DasaTypeShastihayani       DasaType = "Shastihayani"
-	DasaTypeShattrimshatSama   DasaType = "ShattrimshatSama"
-	DasaTypeChara              DasaType = "Chara"
-	DasaTypeSthira             DasaType = "Sthira"
-	DasaTypeLagnaKendra        DasaType = "LagnaKendra"
-	DasaTypeKarakaKendra       DasaType = "KarakaKendra"
-	DasaTypeKaraka             DasaType = "Karaka"
-	DasaTypeBrahmaGrahaAshrita DasaType = "BrahmaGrahaAshrita"
-	DasaTypeManduka            DasaType = "Manduka"
-	DasaTypeShula              DasaType = "Shula"
-	DasaTypeYogardha           DasaType = "Yogardha"
-	DasaTypeDrg                DasaType = "Drg"
+	DasaSystemVimshottari         DasaSystem = "Vimshottari"
+	DasaSystemVimshottariJanma    DasaSystem = "VimshottariJanma"
+	DasaSystemVimshottariLagna    DasaSystem = "VimshottariLagna"
+	DasaSystemVimshottariUtpanna  DasaSystem = "VimshottariUtpanna"
+	DasaSystemVimshottariKshema   DasaSystem = "VimshottariKshema"
+	DasaSystemVimshottariAdhana   DasaSystem = "VimshottariAdhana"
+	DasaSystemAshtottari          DasaSystem = "Ashtottari"
+	DasaSystemTithiAshtottari     DasaSystem = "TithiAshtottari"
+	DasaSystemShodshottari        DasaSystem = "Shodshottari"
+	DasaSystemDvadashottari       DasaSystem = "Dvadashottari"
+	DasaSystemPanchottari         DasaSystem = "Panchottari"
+	DasaSystemSatabdika           DasaSystem = "Satabdika"
+	DasaSystemChaturashitiSama    DasaSystem = "ChaturashitiSama"
+	DasaSystemDwisaptatiSama      DasaSystem = "DwisaptatiSama"
+	DasaSystemShastihayani        DasaSystem = "Shastihayani"
+	DasaSystemShattrimshatSama    DasaSystem = "ShattrimshatSama"
+	DasaSystemTara                DasaSystem = "Tara"
+	DasaSystemMoola               DasaSystem = "Moola"
+	DasaSystemTribhagiVimshottari DasaSystem = "TribhagiVimshottari"
+	DasaSystemChara               DasaSystem = "Chara"
+	DasaSystemKalachakra          DasaSystem = "Kalachakra"
+	DasaSystemNarayana            DasaSystem = "Narayana"
+	DasaSystemShoola              DasaSystem = "Shoola"
+	DasaSystemSudarsana           DasaSystem = "Sudarsana"
 )
 
 // DayOfWeek names the server's DayOfWeek values.
