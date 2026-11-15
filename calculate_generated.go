@@ -7,6 +7,93 @@ import (
 	"fmt"
 )
 
+// FindBirthTimeByLifeEventsOptions supplies optional arguments; nil fields use the server defaults.
+type FindBirthTimeByLifeEventsOptions struct {
+	// Precision: server default "Day".
+	Precision *BirthDatePrecision
+	// Options: server default null.
+	Options *any
+}
+
+// FindBirthTimeByLifeEvents Calls the FindBirthTimeByLifeEvents API calculator.
+// Results are decoded JSON values, or SVG strings for chart endpoints.
+func (c *Client) FindBirthTimeByLifeEvents(ctx context.Context, birthDateReference Time, lifeEvents []any, options ...FindBirthTimeByLifeEventsOptions) (any, error) {
+	if len(options) > 1 {
+		return nil, fmt.Errorf("vedastro: FindBirthTimeByLifeEvents accepts at most one options value")
+	}
+	params := map[string]any{
+		"birthDateReference": birthDateReference,
+		"lifeEvents":         lifeEvents,
+	}
+	if len(options) == 1 {
+		if options[0].Precision != nil {
+			params["precision"] = *options[0].Precision
+		}
+		if options[0].Options != nil {
+			params["options"] = *options[0].Options
+		}
+	}
+	return c.call(ctx, "FindBirthTimeByLifeEvents", params)
+}
+
+// ScoreBirthTimeByLifeEvents Calls the ScoreBirthTimeByLifeEvents API calculator.
+// Results are decoded JSON values, or SVG strings for chart endpoints.
+func (c *Client) ScoreBirthTimeByLifeEvents(ctx context.Context, candidateBirthTime Time, lifeEvents []any) (any, error) {
+	params := map[string]any{
+		"candidateBirthTime": candidateBirthTime,
+		"lifeEvents":         lifeEvents,
+	}
+	return c.call(ctx, "ScoreBirthTimeByLifeEvents", params)
+}
+
+// DasaChartReading Calls the DasaChartReading API calculator.
+// Results are decoded JSON values, or SVG strings for chart endpoints.
+func (c *Client) DasaChartReading(ctx context.Context, birthTime Time, atDate Time) (any, error) {
+	params := map[string]any{
+		"birthTime": birthTime,
+		"atDate":    atDate,
+	}
+	return c.call(ctx, "DasaChartReading", params)
+}
+
+// AstrocartographyOptions supplies optional arguments; nil fields use the server defaults.
+type AstrocartographyOptions struct {
+	// Locations: server default null.
+	Locations *[]GeoLocation
+	// Planets: server default null.
+	Planets *[]string
+	// Zodiac: server default "Tropical".
+	Zodiac *string
+	// SiderealAyanamsa: server default "FAGAN_BRADLEY".
+	SiderealAyanamsa *string
+}
+
+// Astrocartography Birthtime angular lines and comparative scores for exact geographic points. Line geometry is equatorial and therefore independent of the displayed zodiac.
+// Results are decoded JSON values, or SVG strings for chart endpoints.
+func (c *Client) Astrocartography(ctx context.Context, birthTime Time, options ...AstrocartographyOptions) (any, error) {
+	if len(options) > 1 {
+		return nil, fmt.Errorf("vedastro: Astrocartography accepts at most one options value")
+	}
+	params := map[string]any{
+		"birthTime": birthTime,
+	}
+	if len(options) == 1 {
+		if options[0].Locations != nil {
+			params["locations"] = *options[0].Locations
+		}
+		if options[0].Planets != nil {
+			params["planets"] = *options[0].Planets
+		}
+		if options[0].Zodiac != nil {
+			params["zodiac"] = *options[0].Zodiac
+		}
+		if options[0].SiderealAyanamsa != nil {
+			params["siderealAyanamsa"] = *options[0].SiderealAyanamsa
+		}
+	}
+	return c.call(ctx, "Astrocartography", params)
+}
+
 // FindBirthTimeByAnimalOptions supplies optional arguments; nil fields use the server defaults.
 type FindBirthTimeByAnimalOptions struct {
 	// PrecisionHours: server default 1.
@@ -2528,18 +2615,6 @@ func (c *Client) AshtakavargaLongevity(ctx context.Context, birthTime Time) (any
 	return c.call(ctx, "AshtakavargaLongevity", params)
 }
 
-// DasaPeriodAshtakavargaStrength Returns an Ashtakavargabased strength score for a Dasa planet on a 0100 scale. The method calculates the planets Sodya Pinda normalizes it to a percentagelike scale rounds the final result. This can be used as a quick indicator of how strong a Dasa period may be from an Ashtakavarga perspective.
-// dasaPlanet: The Dasa planet to evaluate.
-// birthTime: The natives birth time.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) DasaPeriodAshtakavargaStrength(ctx context.Context, dasaPlanet PlanetName, birthTime Time) (any, error) {
-	params := map[string]any{
-		"dasaPlanet": dasaPlanet,
-		"birthTime":  birthTime,
-	}
-	return c.call(ctx, "DasaPeriodAshtakavargaStrength", params)
-}
-
 // SarvashtakavargaReductions Returns the Sarvashtakavarga reduction result after applying the Mandala Sodhana reduction pipeline. This is a higherlevel reduction across the combined Sarvashtakavarga figures rather than a singleplanet Bhinnashtakavarga result.
 // birthTime: The natives birth time.
 // Results are decoded JSON values, or SVG strings for chart endpoints.
@@ -2927,6 +3002,30 @@ func (c *Client) IsGocharaObstructed(ctx context.Context, planet PlanetName, goc
 	return c.call(ctx, "IsGocharaObstructed", params)
 }
 
+// IsGocharaFavourable Whether a transit sits in one of Ramans favourable Gochara positions for that planet. This is only the base classification Raman insists a favourable position guarantees nothing until it is qualified by the planets bindus and by Vedha so read it together with see crefGocharaTransit.Bindu and see crefGocharaTransit.VedhaPartnerOccupied.
+// planet: The transiting planet the seven classical planets have positions.
+// houseFromMoon: Inclusive sign count from the natal Moon 1 to 12.
+// Results are decoded JSON values, or SVG strings for chart endpoints.
+func (c *Client) IsGocharaFavourable(ctx context.Context, planet PlanetName, houseFromMoon int) (any, error) {
+	params := map[string]any{
+		"planet":        planet,
+		"houseFromMoon": houseFromMoon,
+	}
+	return c.call(ctx, "IsGocharaFavourable", params)
+}
+
+// RamanGochara All seven classical planets transits at one moment each judged against the same natal chart with Ramans method the Moonrelative position and its base classification the planets own Bhinnashtakavarga bindu in the transited sign Vedha the active Kakshyas contributor and the Sarvashtakavarga total of the transited sign. Ramans stated order is birth chart then dasa then Gochara qualified by Ashtakavarga then Vedha then Kakshya unless Gochara is combined with Ashtakavarga results cannot be predicted with appreciable accuracy. This method supplies those transit pieces and leaves the weighing to the caller because Raman gives no calibrated formula for it. Rahu and Ketu are not included Ramans Ashtakavarga is defined for the seven planets and invents no contribution tables for the nodes.
+// birthTime: The natal chart the transit is judged against.
+// transitTime: The moment being judged for a match the kickoff.
+// Results are decoded JSON values, or SVG strings for chart endpoints.
+func (c *Client) RamanGochara(ctx context.Context, birthTime Time, transitTime Time) (any, error) {
+	params := map[string]any{
+		"birthTime":   birthTime,
+		"transitTime": transitTime,
+	}
+	return c.call(ctx, "RamanGochara", params)
+}
+
 // PlanetsInGocharaHouse Returns all planets currently occupying a specific Gochara house where the house count is measured from the natal Moon sign. The method calculates the Gochara house for each tracked planet and returns a list of all planets whose current transit count matches the requested house. The current implementation checks Sun Moon Mars Mercury Jupiter Venus and Saturn.
 // birthTime: The natives birth time.
 // currentTime: The transit time being checked.
@@ -3001,248 +3100,59 @@ func (c *Client) IsPlanetGocharaBinduResult(ctx context.Context, birthTime Time,
 	return c.call(ctx, "IsPlanetGocharaBinduResult", params)
 }
 
-// GetCharaDasaAtTime Calculates the active Chara Dasa sign period at a given moment and when found also fills in its subperiods. The method determines the natal Lagna sign builds the Chara Dasa sign order from that Lagna calculates the duration of each Dasa sign generates the full sequence of Dasa periods finds which period contains the requested checkTime computes the subperiods for the active Dasa. This is the main entry point for Chara Dasa lookup in this section.
-// birthTime: The natives birth time.
-// checkTime: The time for which the active Chara Dasa period should be identified.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) GetCharaDasaAtTime(ctx context.Context, birthTime Time, checkTime Time) (any, error) {
-	params := map[string]any{
-		"birthTime": birthTime,
-		"checkTime": checkTime,
-	}
-	return c.call(ctx, "GetCharaDasaAtTime", params)
+// PlanetSignsAtTimesOptions supplies optional arguments; nil fields use the server defaults.
+type PlanetSignsAtTimesOptions struct {
+	// Planets: server default null.
+	Planets *[]PlanetName
 }
 
-// DasaForNowOptions supplies optional arguments; nil fields use the server defaults.
-type DasaForNowOptions struct {
-	// Levels: server default 3.
-	Levels *int
-}
-
-// DasaForNow Returns the Vimshottari Dasa periods operating right now current system time at the birth location for the given birth chart nested down to the requested number of levels Maha Dasa Bhukti Antaram .... Handy for what planetary period am I in today.
-// birthTime: Birth time location of the person.
+// PlanetSignsAtTimes Returns the zodiac sign each requested planet occupies at each of the supplied moments in one call. This is the batch form of PlanetRasiD1Sign a caller charting a timeline needs a planets sign at many dates and one request per date is both slow and ratelimit hostile. Signs follow the sidereal zodiac honouring the requests Ayanamsa setting matching PlanetSignTransit and the dasha calculations.
+// checkTimes: The moments to evaluate in any order.
 // Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) DasaForNow(ctx context.Context, birthTime Time, options ...DasaForNowOptions) (any, error) {
+func (c *Client) PlanetSignsAtTimes(ctx context.Context, checkTimes []Time, options ...PlanetSignsAtTimesOptions) (any, error) {
 	if len(options) > 1 {
-		return nil, fmt.Errorf("vedastro: DasaForNow accepts at most one options value")
+		return nil, fmt.Errorf("vedastro: PlanetSignsAtTimes accepts at most one options value")
 	}
 	params := map[string]any{
-		"birthTime": birthTime,
+		"checkTimes": checkTimes,
 	}
 	if len(options) == 1 {
-		if options[0].Levels != nil {
-			params["levels"] = *options[0].Levels
+		if options[0].Planets != nil {
+			params["planets"] = *options[0].Planets
 		}
 	}
-	return c.call(ctx, "DasaForNow", params)
+	return c.call(ctx, "PlanetSignsAtTimes", params)
 }
 
-// DasaAtTimeOptions supplies optional arguments; nil fields use the server defaults.
-type DasaAtTimeOptions struct {
-	// Levels: server default 3.
-	Levels *int
+// PlanetSignBoundariesOptions supplies optional arguments; nil fields use the server defaults.
+type PlanetSignBoundariesOptions struct {
+	// Planets: server default null.
+	Planets *[]PlanetName
+	// PrecisionHours: server default 24.
+	PrecisionHours *float64
 }
 
-// DasaAtTime Returns the Vimshottari Dasa periods operating at a specific moment for the given birth chart nested down to the requested number of levels Maha Dasa Bhukti Antaram ....
-// birthTime: Birth time location of the person.
-// checkTime: The moment to evaluate the running Dasa periods for.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) DasaAtTime(ctx context.Context, birthTime Time, checkTime Time, options ...DasaAtTimeOptions) (any, error) {
-	if len(options) > 1 {
-		return nil, fmt.Errorf("vedastro: DasaAtTime accepts at most one options value")
-	}
-	params := map[string]any{
-		"birthTime": birthTime,
-		"checkTime": checkTime,
-	}
-	if len(options) == 1 {
-		if options[0].Levels != nil {
-			params["levels"] = *options[0].Levels
-		}
-	}
-	return c.call(ctx, "DasaAtTime", params)
-}
-
-// SpecialDasaApplicability Checks which of Parasaras 9 special condition conditional Udu Dasa systems apply to a birth chart Ashtottari Shodasottari Dwadasottari Panchottari Satabdika Chaturasiti Sama Dwisaptati Sama Shastihayani and Shattrimsa Sama. Each system has a strict applicability criteria given in BPHS ch 48 e.g. Ashtottari needs Rahu in quadranttrine from the Lagna lord. Returns every applicable system with its reason plus the single winning system as per Parasaras order of precedence. Note that these special dasas supplement the universally applicable Vimshottari Dasa they do not replace it they reveal the special purpose of the birth and time the major turning points that lead to its achievement.
-// birthTime: Birth time location of the person.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) SpecialDasaApplicability(ctx context.Context, birthTime Time) (any, error) {
-	params := map[string]any{
-		"birthTime": birthTime,
-	}
-	return c.call(ctx, "SpecialDasaApplicability", params)
-}
-
-// SpecialDasaAtTimeOptions supplies optional arguments; nil fields use the server defaults.
-type SpecialDasaAtTimeOptions struct {
-	// Levels: server default 3.
-	Levels *int
-}
-
-// SpecialDasaAtTime Returns the planetary period lords PD1 Maha Dasa PD2 subperiod PD3 subsubperiod... operating at a specific moment under one of Parasaras special condition Udu Dasa systems Ashtottari Shodasottari Dwadasottari Panchottari Satabdika Chaturasiti Sama Dwisaptati Sama Shastihayani Shattrimsa Sama. Use SpecialDasaApplicability first to know which system fits the chart. These conditional dasas supplement Vimshottari Dasa for timing the special purpose of the birth.
-// birthTime: Birth time location of the person.
-// checkTime: The moment to evaluate the running Dasa periods for.
-// dasaSystem: Which special dasa system to calculate with.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) SpecialDasaAtTime(ctx context.Context, birthTime Time, checkTime Time, dasaSystem DasaType, options ...SpecialDasaAtTimeOptions) (any, error) {
-	if len(options) > 1 {
-		return nil, fmt.Errorf("vedastro: SpecialDasaAtTime accepts at most one options value")
-	}
-	params := map[string]any{
-		"birthTime":  birthTime,
-		"checkTime":  checkTime,
-		"dasaSystem": dasaSystem,
-	}
-	if len(options) == 1 {
-		if options[0].Levels != nil {
-			params["levels"] = *options[0].Levels
-		}
-	}
-	return c.call(ctx, "SpecialDasaAtTime", params)
-}
-
-// DasaAtRangeOptions supplies optional arguments; nil fields use the server defaults.
-type DasaAtRangeOptions struct {
-	// Levels: server default 3.
-	Levels *int
-	// PrecisionHours: server default 100.
-	PrecisionHours *int
-}
-
-// DasaAtRange Returns the sequence of Vimshottari Dasa periods across a time range for the given birth chart sampling the range at the given precision and nesting down to the requested number of levels. Use this to build a Dasa timeline between two dates.
-// birthTime: Birth time location of the person.
+// PlanetSignBoundaries Returns every moment a planet changes zodiac sign inside a date range for several planets at once. PlanetSignTransit scans its whole range on a fixed 3minute grid which makes any multiyear range far too expensive to answer that is why it is unusable for long timelines. This walks the range on a coarse precisionHours grid and then bisects each detected change so the work scales with the number of changes rather than the length of the range and the reported boundary is accurate to well within a minute. Retrograde reentries are reported as separate intervals so the sequence is complete.
 // startTime: Start of the range to scan.
 // endTime: End of the range to scan.
 // Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) DasaAtRange(ctx context.Context, birthTime Time, startTime Time, endTime Time, options ...DasaAtRangeOptions) (any, error) {
+func (c *Client) PlanetSignBoundaries(ctx context.Context, startTime Time, endTime Time, options ...PlanetSignBoundariesOptions) (any, error) {
 	if len(options) > 1 {
-		return nil, fmt.Errorf("vedastro: DasaAtRange accepts at most one options value")
+		return nil, fmt.Errorf("vedastro: PlanetSignBoundaries accepts at most one options value")
 	}
 	params := map[string]any{
-		"birthTime": birthTime,
 		"startTime": startTime,
 		"endTime":   endTime,
 	}
 	if len(options) == 1 {
-		if options[0].Levels != nil {
-			params["levels"] = *options[0].Levels
+		if options[0].Planets != nil {
+			params["planets"] = *options[0].Planets
 		}
 		if options[0].PrecisionHours != nil {
 			params["precisionHours"] = *options[0].PrecisionHours
 		}
 	}
-	return c.call(ctx, "DasaAtRange", params)
-}
-
-// DasaForLifeOptions supplies optional arguments; nil fields use the server defaults.
-type DasaForLifeOptions struct {
-	// Levels: server default 3.
-	Levels *int
-	// PrecisionHours: server default 24.
-	PrecisionHours *int
-	// ScanYears: server default 100.
-	ScanYears *int
-}
-
-// DasaForLife Returns the full Vimshottari Dasa timeline for an entire life starting at birth and scanning forward the given number of years nested down to the requested number of levels. A convenience wrapper over DasaAtRange covering birth to birth scanYears.
-// birthTime: Birth time location of the person.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) DasaForLife(ctx context.Context, birthTime Time, options ...DasaForLifeOptions) (any, error) {
-	if len(options) > 1 {
-		return nil, fmt.Errorf("vedastro: DasaForLife accepts at most one options value")
-	}
-	params := map[string]any{
-		"birthTime": birthTime,
-	}
-	if len(options) == 1 {
-		if options[0].Levels != nil {
-			params["levels"] = *options[0].Levels
-		}
-		if options[0].PrecisionHours != nil {
-			params["precisionHours"] = *options[0].PrecisionHours
-		}
-		if options[0].ScanYears != nil {
-			params["scanYears"] = *options[0].ScanYears
-		}
-	}
-	return c.call(ctx, "DasaForLife", params)
-}
-
-// DasaAtRangeStringOptions supplies optional arguments; nil fields use the server defaults.
-type DasaAtRangeStringOptions struct {
-	// Levels: server default 3.
-	Levels *int
-	// PrecisionHours: server default 100.
-	PrecisionHours *int
-}
-
-// DasaAtRangeString Same as DasaAtRange but returns the Dasa timeline as a compact JSON string instead of a JObject. Useful for callers that want the raw serialized payload directly.
-// birthTime: Birth time location of the person.
-// startTime: Start of the range to scan.
-// endTime: End of the range to scan.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) DasaAtRangeString(ctx context.Context, birthTime Time, startTime Time, endTime Time, options ...DasaAtRangeStringOptions) (any, error) {
-	if len(options) > 1 {
-		return nil, fmt.Errorf("vedastro: DasaAtRangeString accepts at most one options value")
-	}
-	params := map[string]any{
-		"birthTime": birthTime,
-		"startTime": startTime,
-		"endTime":   endTime,
-	}
-	if len(options) == 1 {
-		if options[0].Levels != nil {
-			params["levels"] = *options[0].Levels
-		}
-		if options[0].PrecisionHours != nil {
-			params["precisionHours"] = *options[0].PrecisionHours
-		}
-	}
-	return c.call(ctx, "DasaAtRangeString", params)
-}
-
-// DasaForLifeStringOptions supplies optional arguments; nil fields use the server defaults.
-type DasaForLifeStringOptions struct {
-	// Levels: server default 3.
-	Levels *int
-	// PrecisionHours: server default 24.
-	PrecisionHours *int
-	// ScanYears: server default 100.
-	ScanYears *int
-}
-
-// DasaForLifeString Same as DasaForLife but returns the wholelife Dasa timeline as a compact JSON string instead of a JObject. Useful for callers that want the raw serialized payload directly.
-// birthTime: Birth time location of the person.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) DasaForLifeString(ctx context.Context, birthTime Time, options ...DasaForLifeStringOptions) (any, error) {
-	if len(options) > 1 {
-		return nil, fmt.Errorf("vedastro: DasaForLifeString accepts at most one options value")
-	}
-	params := map[string]any{
-		"birthTime": birthTime,
-	}
-	if len(options) == 1 {
-		if options[0].Levels != nil {
-			params["levels"] = *options[0].Levels
-		}
-		if options[0].PrecisionHours != nil {
-			params["precisionHours"] = *options[0].PrecisionHours
-		}
-		if options[0].ScanYears != nil {
-			params["scanYears"] = *options[0].ScanYears
-		}
-	}
-	return c.call(ctx, "DasaForLifeString", params)
-}
-
-// PlanetDasaEffectsBasedOnIshtaKashta Reference Bhava Graha Bala pg. 104 A planet with more lshta Phala is always supposed to be inclined to do good in its Dasa or Bhukti while a planet with more Kashta Phala is supposed to give rise to more evil results. In case of Venus in the Standard Horoscope the Kashta predominates over Ishta. Therefore in his Dasa or Bhukti Venus will give aJl sorts of miseries with regard to the bhavas ruled or aspected by him. As lord of the 5th house in such a circumstance Saturn is sure to cause loss of children and producing evil on this account.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) PlanetDasaEffectsBasedOnIshtaKashta(ctx context.Context, planetName PlanetName, birthTime Time) (any, error) {
-	params := map[string]any{
-		"planetName": planetName,
-		"birthTime":  birthTime,
-	}
-	return c.call(ctx, "PlanetDasaEffectsBasedOnIshtaKashta", params)
+	return c.call(ctx, "PlanetSignBoundaries", params)
 }
 
 // GetHouseTags Returns a plainEnglish keyword summary for a house. Each house is mapped to a compact descriptive string covering its main life themes such as health family children profession losses marriage longevity and related subjects. This helper is used when converting technical house references into more readable interpretation text.
@@ -3293,16 +3203,6 @@ func (c *Client) GetHouseType(ctx context.Context, houseNumber HouseName) (any, 
 		"houseNumber": houseNumber,
 	}
 	return c.call(ctx, "GetHouseType", params)
-}
-
-// GetDasaInfoForAscendant Returns traditional bDasa interpretation guidance for a given ascendantb. The method 1. selects the list of generally favorable planets for the ascendant 2. selects the list of generally unfavorable planets 3. retrieves a narrative description explaining how those planets behave for that Lagna 4. packages the result into an cAscendantDasaInfoc object. This helper is meant to support Dasa interpretation by giving quick signspecific guidance on which planets are broadly auspicious inauspicious or capable of producing yoga or maraka effects.
-// ascendantName: The ascendant sign for which Dasa guidance is required.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) GetDasaInfoForAscendant(ctx context.Context, ascendantName ZodiacName) (any, error) {
-	params := map[string]any{
-		"ascendantName": ascendantName,
-	}
-	return c.call(ctx, "GetDasaInfoForAscendant", params)
 }
 
 // D150AmsaRulers Calculates JHoras D150 Nadyamsa values for Lagna and all planets. JHoras default D150Preference is the nonuniform Nadyamsa table.
@@ -3464,35 +3364,6 @@ func (c *Client) SodyaAshtakavarga(ctx context.Context, time Time) (any, error) 
 	return c.call(ctx, "SodyaAshtakavarga", params)
 }
 
-// KalachakraChart Calculates Kalachakra Chart. Kalachakra chart maps Moon Nakshatra Pada into the corresponding Rasi sequence used for Kalachakra Dasa calculations. Based on Jagannatha Hora Kalachakra system. Returns Moon longitude Nakshatra Pada Kalachakra group Starting sign Direction sequence
-// time: Birth time.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) KalachakraChart(ctx context.Context, time Time) (any, error) {
-	params := map[string]any{
-		"time": time,
-	}
-	return c.call(ctx, "KalachakraChart", params)
-}
-
-// KalachakraDasa Calculates Kalachakra Dasa. Kalachakra Dasa is a Rasi based predictive system derived from Moon Nakshatra Pada. Uses KalachakraChart Rasi sequence Sign lords Classical sign years
-// time: Birth chart time.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) KalachakraDasa(ctx context.Context, time Time) (any, error) {
-	params := map[string]any{
-		"time": time,
-	}
-	return c.call(ctx, "KalachakraDasa", params)
-}
-
-// GetSignLord Empty sample text
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) GetSignLord(ctx context.Context, sign ZodiacName) (any, error) {
-	params := map[string]any{
-		"sign": sign,
-	}
-	return c.call(ctx, "GetSignLord", params)
-}
-
 // SarvatobhadraChakra Generates Sarvatobhadra Chakra. Sarvatobhadra Chakra is a 9x9 astrological grid used for Nakshatra Rasi and transit Vedha analysis. Contains Nakshatra positions Rasi positions Chakra coordinates Based on Jagannatha Hora implementation.
 // time: Birth chart time.
 // Results are decoded JSON values, or SVG strings for chart endpoints.
@@ -3540,113 +3411,6 @@ func (c *Client) ChandraKalanalaChakra(ctx context.Context, time Time) (any, err
 		"time": time,
 	}
 	return c.call(ctx, "ChandraKalanalaChakra", params)
-}
-
-// SudarsanaChakra Compatibility entry point for JHoras Sudarsana Chakra Dasa. FUN_004133E0 is a 12by12 oneyear rasi dasa not three rotated copies of the natal chart.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) SudarsanaChakra(ctx context.Context, time Time) (any, error) {
-	params := map[string]any{
-		"time": time,
-	}
-	return c.call(ctx, "SudarsanaChakra", params)
-}
-
-// CalculateSudarsanaChakraDasa Empty sample text
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) CalculateSudarsanaChakraDasa(ctx context.Context, time Time) (any, error) {
-	params := map[string]any{
-		"time": time,
-	}
-	return c.call(ctx, "CalculateSudarsanaChakraDasa", params)
-}
-
-// MoolaDasaOptions supplies optional arguments; nil fields use the server defaults.
-type MoolaDasaOptions struct {
-	// UseLagna: server default true.
-	UseLagna *bool
-	// UseMoon: server default true.
-	UseMoon *bool
-	// UseSun: server default true.
-	UseSun *bool
-	// NoCorrectionInMoolatrikona: server default false.
-	NoCorrectionInMoolatrikona *bool
-}
-
-// MoolaDasa Builds JHoras Moola Dasa recovered from FUN_00410CD0 together with FUN_004AB650 FUN_004AB730 and FUN_004AD280. The strongest enabled candidate among Lagna Moon and Sun supplies the starting sign. Planets are then collected through the native kendrapanapharaapoklima sign sequence. Every planet has two complementary periods whose total is its Vimshottari allotment. Civil boundaries are exact returns of the natal sidereal Sun.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) MoolaDasa(ctx context.Context, time Time, options ...MoolaDasaOptions) (any, error) {
-	if len(options) > 1 {
-		return nil, fmt.Errorf("vedastro: MoolaDasa accepts at most one options value")
-	}
-	params := map[string]any{
-		"time": time,
-	}
-	if len(options) == 1 {
-		if options[0].UseLagna != nil {
-			params["useLagna"] = *options[0].UseLagna
-		}
-		if options[0].UseMoon != nil {
-			params["useMoon"] = *options[0].UseMoon
-		}
-		if options[0].UseSun != nil {
-			params["useSun"] = *options[0].UseSun
-		}
-		if options[0].NoCorrectionInMoolatrikona != nil {
-			params["noCorrectionInMoolatrikona"] = *options[0].NoCorrectionInMoolatrikona
-		}
-	}
-	return c.call(ctx, "MoolaDasa", params)
-}
-
-// NarayanaDasa Builds JHoras default D1 Narayana mahadasas recovered from FUN_00414060 and FUN_004ACC50. The second twelvesign cycle uses the native 12Y complements including zeroduration periods and civil boundaries are exact sidereal solar returns.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) NarayanaDasa(ctx context.Context, time Time) (any, error) {
-	params := map[string]any{
-		"time": time,
-	}
-	return c.call(ctx, "NarayanaDasa", params)
-}
-
-// ShoolaChakra Compatibility entry point for the Shoola rasi dasa recovered at FUN_00407920. It is unrelated to weekday travel directions.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) ShoolaChakra(ctx context.Context, time Time) (any, error) {
-	params := map[string]any{
-		"time": time,
-	}
-	return c.call(ctx, "ShoolaChakra", params)
-}
-
-// CalculateShoolaDasaOptions supplies optional arguments; nil fields use the server defaults.
-type CalculateShoolaDasaOptions struct {
-	// StartingHouse: server default 1.
-	StartingHouse *int
-	// ResolvedStartSign: server default null.
-	ResolvedStartSign **ZodiacName
-	// AntardasaMode: server default "DasaSign".
-	AntardasaMode *ShoolaAntardasaMode
-}
-
-// CalculateShoolaDasa Builds twelve consecutive nineyear Shoola mahadasas and twelve equal consecutive antardasas per mahadasa.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) CalculateShoolaDasa(ctx context.Context, time Time, options ...CalculateShoolaDasaOptions) (any, error) {
-	if len(options) > 1 {
-		return nil, fmt.Errorf("vedastro: CalculateShoolaDasa accepts at most one options value")
-	}
-	params := map[string]any{
-		"time": time,
-	}
-	if len(options) == 1 {
-		if options[0].StartingHouse != nil {
-			params["startingHouse"] = *options[0].StartingHouse
-		}
-		if options[0].ResolvedStartSign != nil {
-			params["resolvedStartSign"] = *options[0].ResolvedStartSign
-		}
-		if options[0].AntardasaMode != nil {
-			params["antardasaMode"] = *options[0].AntardasaMode
-		}
-	}
-	return c.call(ctx, "CalculateShoolaDasa", params)
 }
 
 // TripatakiChakra Compatibility entry point for CTripatakiChakraViews actual twelvesign lattice and objectplacement logic FUN_00491150.
@@ -3768,25 +3532,6 @@ func (c *Client) TithiPravesha(ctx context.Context, time Time) (any, error) {
 		"time": time,
 	}
 	return c.call(ctx, "TithiPravesha", params)
-}
-
-// TithiAshtottariDasa Calculates Tithi Ashtottari Dasa. Tithi Ashtottari is an Ashtottari Dasa system whose starting point is the birth Tithi instead of Nakshatra. Cycle Sun 6 Moon 15 Mars 8 Mercury 17 Saturn 10 Jupiter 19 Venus 21 Rahu 12 Total 108 years Based on Jagannatha Hora implementation.
-// time: Birth chart time.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) TithiAshtottariDasa(ctx context.Context, time Time) (any, error) {
-	params := map[string]any{
-		"time": time,
-	}
-	return c.call(ctx, "TithiAshtottariDasa", params)
-}
-
-// DasaYearLengthInDays Returns the exact day count used for a JHora dasa year.
-// Results are decoded JSON values, or SVG strings for chart endpoints.
-func (c *Client) DasaYearLengthInDays(ctx context.Context, yearDefinition JHoraDasaYearDefinition) (any, error) {
-	params := map[string]any{
-		"yearDefinition": yearDefinition,
-	}
-	return c.call(ctx, "DasaYearLengthInDays", params)
 }
 
 // JaiminiRasiDrishti Calculates Jaimini Rasi Drishti. Jaimini Rasi Drishti is the sign aspect system used in Jaimini astrology. Rules Movable signs aspect fixed signs Fixed signs aspect movable signs Dual signs aspect other dual signs Based on Jagannatha Hora Jaimini calculations.
@@ -4037,6 +3782,82 @@ func (c *Client) SignProperties(ctx context.Context, inputSign ZodiacName) (any,
 		"inputSign": inputSign,
 	}
 	return c.call(ctx, "SignProperties", params)
+}
+
+// DasaSystems Which Dasa systems exist which apply to this chart and why. Discovery only no periods are calculated.
+// Results are decoded JSON values, or SVG strings for chart endpoints.
+func (c *Client) DasaSystems(ctx context.Context, birthTime Time) (any, error) {
+	params := map[string]any{
+		"birthTime": birthTime,
+	}
+	return c.call(ctx, "DasaSystems", params)
+}
+
+// DasaAtTimeOptions supplies optional arguments; nil fields use the server defaults.
+type DasaAtTimeOptions struct {
+	// System: server default "Vimshottari".
+	System *DasaSystem
+	// Depth: server default 3.
+	Depth *int
+	// Options: server default null.
+	Options *any
+}
+
+// DasaAtTime Raw periods running at one moment through the requested depth. Contains no interpretation text interpretation belongs to the EventsChart layer.
+// Results are decoded JSON values, or SVG strings for chart endpoints.
+func (c *Client) DasaAtTime(ctx context.Context, birthTime Time, at Time, options ...DasaAtTimeOptions) (any, error) {
+	if len(options) > 1 {
+		return nil, fmt.Errorf("vedastro: DasaAtTime accepts at most one options value")
+	}
+	params := map[string]any{
+		"birthTime": birthTime,
+		"at":        at,
+	}
+	if len(options) == 1 {
+		if options[0].System != nil {
+			params["system"] = *options[0].System
+		}
+		if options[0].Depth != nil {
+			params["depth"] = *options[0].Depth
+		}
+		if options[0].Options != nil {
+			params["options"] = *options[0].Options
+		}
+	}
+	return c.call(ctx, "DasaAtTime", params)
+}
+
+// DasaForLifeOptions supplies optional arguments; nil fields use the server defaults.
+type DasaForLifeOptions struct {
+	// System: server default "Vimshottari".
+	System *DasaSystem
+	// Depth: server default 3.
+	Depth *int
+	// Options: server default null.
+	Options *any
+}
+
+// DasaForLife Raw periods for one systemdefined life. The span comes from the system itself Vimshottari 120 years Ashtottari 108 Sudarsana 12 so there is no range year count or precision to supply. Contains no interpretation text.
+// Results are decoded JSON values, or SVG strings for chart endpoints.
+func (c *Client) DasaForLife(ctx context.Context, birthTime Time, options ...DasaForLifeOptions) (any, error) {
+	if len(options) > 1 {
+		return nil, fmt.Errorf("vedastro: DasaForLife accepts at most one options value")
+	}
+	params := map[string]any{
+		"birthTime": birthTime,
+	}
+	if len(options) == 1 {
+		if options[0].System != nil {
+			params["system"] = *options[0].System
+		}
+		if options[0].Depth != nil {
+			params["depth"] = *options[0].Depth
+		}
+		if options[0].Options != nil {
+			params["options"] = *options[0].Options
+		}
+	}
+	return c.call(ctx, "DasaForLife", params)
 }
 
 // PredictMedicalHealthConditions Predicts a persons likely health conditions and bodily vulnerabilities from their birth chart. Computes the fundamental chart data once then maps afflicted and weak planets to the body parts and organs they rule to highlight areas of medical concern. Returns a structured report of predicted conditions grouped by organ and ruling planet based on Vedic medical astrology.
@@ -4335,7 +4156,7 @@ func (c *Client) IsSuklaPaksha(ctx context.Context, time Time) (any, error) {
 	return c.call(ctx, "IsSuklaPaksha", params)
 }
 
-// MoonConstellation Returns the constellation occupied by a planet. The method gets the planets Nirayana longitude and maps that longitude to a constellation.
+// MoonConstellation Returns the Moons constellation at the supplied chart time.
 // time: The chart time.
 // Results are decoded JSON values, or SVG strings for chart endpoints.
 func (c *Client) MoonConstellation(ctx context.Context, time Time) (any, error) {
@@ -8046,4 +7867,99 @@ func (c *Client) PanchaPakshiBirthBird(ctx context.Context, birthTime Time) (any
 		"birthTime": birthTime,
 	}
 	return c.call(ctx, "PanchaPakshiBirthBird", params)
+}
+
+// PanchaPakshiBirdStrength The natural vibrational strength of each bird from the books Comparative Strength Analysis Table No. 5. Crow is the strongest bird and Peacock the weakest. Used to decide which of two people wins when they face each other.
+// Results are decoded JSON values, or SVG strings for chart endpoints.
+func (c *Client) PanchaPakshiBirdStrength(ctx context.Context, bird BirdName) (any, error) {
+	params := map[string]any{
+		"bird": bird,
+	}
+	return c.call(ctx, "PanchaPakshiBirdStrength", params)
+}
+
+// PanchaPakshiActivityFactor The relative strength factor of each activity Ruling strongest Dying weakest from Table No. 5. Multiplied against see crefPanchaPakshiBirdStrength to get a persons combined vibrational strength at a moment.
+// Results are decoded JSON values, or SVG strings for chart endpoints.
+func (c *Client) PanchaPakshiActivityFactor(ctx context.Context, activity BirdActivity) (any, error) {
+	params := map[string]any{
+		"activity": activity,
+	}
+	return c.call(ctx, "PanchaPakshiActivityFactor", params)
+}
+
+// PanchaPakshiCompare Compares two people at one moment and reports who is vibrationally stronger wins. Each persons combined strength natural bird strength activity factor exactly the model the book uses in its courtship worked example Vulture 75 Ruling beats Peacock 12.5 Walking and in the boss example when the boss is at a lower vibration the former succeeds. A higher strength wins equal strengths are a tie.
+// personA: Birth time of the first person their stellar birthbird is fixed from this.
+// personB: Birth time of the second person.
+// checkTime: The moment to compare the two people at.
+// Results are decoded JSON values, or SVG strings for chart endpoints.
+func (c *Client) PanchaPakshiCompare(ctx context.Context, personA Time, personB Time, checkTime Time) (any, error) {
+	params := map[string]any{
+		"personA":   personA,
+		"personB":   personB,
+		"checkTime": checkTime,
+	}
+	return c.call(ctx, "PanchaPakshiCompare", params)
+}
+
+// PanchaPakshiTimelineOptions supplies optional arguments; nil fields use the server defaults.
+type PanchaPakshiTimelineOptions struct {
+	// PrecisionHours: server default 1.
+	PrecisionHours *float64
+}
+
+// PanchaPakshiTimeline Scans a time window and returns for each sample which of the two people is stronger see see crefPanchaPakshiCompare. Use it to find the hours in a dayweekmonth year when person A can get their way with person B ask for a promotion court compete and the hours to avoid. The sample step is clamped so the answer never exceeds 2000 rows.
+// personA: Birth time of the first person.
+// personB: Birth time of the second person.
+// startTime: First moment of the window to scan.
+// endTime: Last moment of the window to scan.
+// Results are decoded JSON values, or SVG strings for chart endpoints.
+func (c *Client) PanchaPakshiTimeline(ctx context.Context, personA Time, personB Time, startTime Time, endTime Time, options ...PanchaPakshiTimelineOptions) (any, error) {
+	if len(options) > 1 {
+		return nil, fmt.Errorf("vedastro: PanchaPakshiTimeline accepts at most one options value")
+	}
+	params := map[string]any{
+		"personA":   personA,
+		"personB":   personB,
+		"startTime": startTime,
+		"endTime":   endTime,
+	}
+	if len(options) == 1 {
+		if options[0].PrecisionHours != nil {
+			params["precisionHours"] = *options[0].PrecisionHours
+		}
+	}
+	return c.call(ctx, "PanchaPakshiTimeline", params)
+}
+
+// PanchaPakshiTimelineByDurationOptions supplies optional arguments; nil fields use the server defaults.
+type PanchaPakshiTimelineByDurationOptions struct {
+	// DurationHours: server default 24.
+	DurationHours *float64
+	// PrecisionHours: server default 1.
+	PrecisionHours *float64
+}
+
+// PanchaPakshiTimelineByDuration Convenience overload of see crefPanchaPakshiTimeline that derives the window end from a duration instead of a second time so callers only need one checktime URL. Used by the websites twoperson who wins tool.
+// personA: Birth time of the first person.
+// personB: Birth time of the second person.
+// startTime: First moment of the window to scan.
+// Results are decoded JSON values, or SVG strings for chart endpoints.
+func (c *Client) PanchaPakshiTimelineByDuration(ctx context.Context, personA Time, personB Time, startTime Time, options ...PanchaPakshiTimelineByDurationOptions) (any, error) {
+	if len(options) > 1 {
+		return nil, fmt.Errorf("vedastro: PanchaPakshiTimelineByDuration accepts at most one options value")
+	}
+	params := map[string]any{
+		"personA":   personA,
+		"personB":   personB,
+		"startTime": startTime,
+	}
+	if len(options) == 1 {
+		if options[0].DurationHours != nil {
+			params["durationHours"] = *options[0].DurationHours
+		}
+		if options[0].PrecisionHours != nil {
+			params["precisionHours"] = *options[0].PrecisionHours
+		}
+	}
+	return c.call(ctx, "PanchaPakshiTimelineByDuration", params)
 }

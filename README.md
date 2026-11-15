@@ -298,28 +298,23 @@ Karana:    Chatushpada
 **Use Case:** Get planetary periods (Mahadasa → Bhukti → Antaram) over a range
 
 ```go
-mumbai := vedastro.NewGeoLocation("Mumbai", 72.8777, 19.0760)
-birth, _ := vedastro.NewTime("14:30 25/10/1992 +05:30", mumbai)
-start, _ := vedastro.NewTime("00:00 01/01/2020 +05:30", mumbai)
-end, _ := vedastro.NewTime("23:59 31/12/2030 +05:30", mumbai)
+package main
 
-// Optional arguments use a method-specific options struct with pointer fields.
-// (DasaAtRangeOptions.Levels and .PrecisionHours are both *int.)
-dasa, err := client.DasaAtRange(context.Background(), birth, start, end,
-	vedastro.DasaAtRangeOptions{
-		Levels:         vedastro.Ptr(3),
-		PrecisionHours: vedastro.Ptr(100),
+import (
+	vedastro "github.com/VedAstro/VedAstro.Go"
+	"github.com/VedAstro/VedAstro.Go/internal/exampleutil"
+)
+
+func main() {
+	exampleutil.Run(func(r *exampleutil.Runner) error {
+		return r.Show("Vimshottari dasa", func() (any, error) {
+			return r.Client.DasaForLife(r.Context, r.Birth, vedastro.DasaForLifeOptions{
+				System: vedastro.Ptr(vedastro.DasaSystemVimshottariJanma),
+				Depth:  vedastro.Ptr(3),
+			})
+		})
 	})
-if err != nil {
-	log.Fatal(err)
 }
-
-// Dynamic payloads print cleanly with json.MarshalIndent.
-data, err := json.MarshalIndent(dasa, "", "  ")
-if err != nil {
-	log.Fatal(err)
-}
-fmt.Println(string(data))
 ```
 
 👉 **See full example:** [`examples/vimshottari_dasa`](examples/vimshottari_dasa/main.go)
@@ -910,7 +905,7 @@ Every calculator is a method on `*Client`, takes `context.Context` first, and re
 `SarvashtakavargaChart`, `BhinnashtakavargaChart`, `PlanetAshtakvargaBindu`, `GocharaKakshas`, `AshtakavargaLongevity`, `PrastaraAshtakavarga`, `SodyaAshtakavarga`, +13 more
 
 ### Dasa — planetary periods (20 methods)
-`DasaAtRange`, `DasaAtTime`, `DasaForNow`, `DasaForLife`, `MoolaDasa`, `NarayanaDasa`, `KalachakraDasa`, `TithiAshtottariDasa`, +12 more
+`DasaSystems`, `DasaAtTime`, `DasaForLife` (use the language-specific naming shown in the examples).
 
 ### Earthquake research (20 methods)
 `CalculateEarthquakeRiskScore`, `IsEarthquakeNearEclipse`, `IsEarthquakeJupiterSaturnConjunction`, `IsEarthquakePlanetsClusteredInNarrowArc`, +16 more
