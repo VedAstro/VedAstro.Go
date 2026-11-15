@@ -653,7 +653,6 @@ Each client owns its settings and is **safe for concurrent requests**. Options a
 ```go
 client := vedastro.NewClient(apiKey,
 	vedastro.WithDefaultAyanamsa(vedastro.AyanamsaLahiri),
-	vedastro.WithBaseURL("https://vedastro.zaishi.net/api/Calculate"),
 	vedastro.WithHTTPClient(customClient),
 )
 ```
@@ -661,11 +660,10 @@ client := vedastro.NewClient(apiKey,
 | Option | Effect |
 |--------|--------|
 | `WithDefaultAyanamsa(v)` | Ayanamsa sent with this client's requests |
-| `WithBaseURL(url)` | Point at a different Calculate service or a test server |
 | `WithHTTPClient(c)` | Custom `*http.Client`; a shallow copy is retained |
 | `WithTimeout(d)` | Optional calculation deadline; **none is applied by default** (see below) |
 
-Invalid configuration is **reported by the first calculator call**, not by `NewClient` — so a bad base URL surfaces as an error from your request rather than a panic at startup.
+Invalid configuration is **reported by the first calculator call**, not by `NewClient` — so invalid settings surface as request errors rather than panics at startup.
 
 ### ⏳ There is no request deadline by default
 

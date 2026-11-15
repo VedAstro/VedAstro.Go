@@ -46,8 +46,7 @@ func TestAllGeneratedRequestContracts(t *testing.T) {
 		return &http.Response{StatusCode: 200, Header: make(http.Header),
 			Body: io.NopCloser(strings.NewReader(`{"Payload":true}`)), Request: r}, nil
 	})
-	client := NewClient("fixture-key", WithBaseURL("https://example.test"),
-		WithHTTPClient(&http.Client{Transport: transport}))
+	client := NewClient("fixture-key", WithHTTPClient(&http.Client{Transport: transport}))
 	for _, entry := range manifest.Methods {
 		t.Run(entry.Name, func(t *testing.T) {
 			method := reflect.ValueOf(client).MethodByName(entry.Name)
@@ -82,7 +81,7 @@ func TestAllGeneratedRequestContracts(t *testing.T) {
 			if !result[1].IsNil() {
 				t.Fatal(result[1].Interface())
 			}
-			if path != "/"+entry.Name {
+			if path != "/api/Calculate/"+entry.Name {
 				t.Fatalf("endpoint %s", path)
 			}
 			encoded, err := json.Marshal(expected)

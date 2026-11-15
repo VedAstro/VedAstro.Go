@@ -18,8 +18,8 @@ import (
 // Version is the SDK release version.
 const Version = "v1.0.0"
 
-// DefaultBaseURL is the public calculator service.
-const DefaultBaseURL = "https://vedastro.zaishi.net/api/Calculate"
+// apiEndpoint is owned by the SDK.
+const apiEndpoint = "https://vedastro.zaishi.net/api/Calculate"
 
 const banner = "VedAstro : Easy To Use Advanced Astrology Engine"
 
@@ -28,7 +28,6 @@ var bannerOnce sync.Once
 // Client owns immutable settings and is safe for concurrent calculation calls.
 type Client struct {
 	apiKey     string
-	baseURL    string
 	httpClient *http.Client
 	timeout    *time.Duration
 	ayanamsa   Ayanamsa
@@ -43,7 +42,7 @@ type ClientOption func(*Client)
 // Invalid options are reported by calculation methods before any HTTP request.
 func NewClient(apiKey string, options ...ClientOption) *Client {
 	c := &Client{
-		apiKey: apiKey, baseURL: DefaultBaseURL, httpClient: &http.Client{},
+		apiKey: apiKey, httpClient: &http.Client{},
 		timeout:   nil,
 		updateURL: "https://proxy.golang.org/github.com/!ved!astro/!ved!astro.!go/@latest",
 	}
@@ -58,19 +57,6 @@ func NewClient(apiKey string, options ...ClientOption) *Client {
 		}
 	})
 	return c
-}
-
-// WithBaseURL selects a calculator service URL, for example for an HTTP test server.
-func WithBaseURL(baseURL string) ClientOption {
-	return func(c *Client) {
-		u, err := url.Parse(baseURL)
-		if err != nil || u.Host == "" || (u.Scheme != "https" && u.Scheme != "http") ||
-			u.User != nil || u.RawQuery != "" || u.Fragment != "" {
-			c.configErr = errors.New("vedastro: base URL must be an HTTP(S) URL without credentials, query, or fragment")
-			return
-		}
-		c.baseURL = strings.TrimRight(baseURL, "/")
-	}
 }
 
 // WithHTTPClient supplies a transport configuration. A shallow copy is retained;
@@ -188,7 +174,7 @@ func (c *Client) call(ctx context.Context, endpoint string, parameters map[strin
 		ctx, cancel = context.WithTimeout(ctx, *c.timeout)
 		defer cancel()
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/"+url.PathEscape(endpoint), strings.NewReader(string(encoded)))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, apiEndpoint+"/"+url.PathEscape(endpoint), strings.NewReader(string(encoded)))
 	if err != nil {
 		return nil, errors.New("vedastro: cannot create API request")
 	}

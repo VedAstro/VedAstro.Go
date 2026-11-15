@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"reflect"
 	"strings"
@@ -39,7 +40,7 @@ func TestPythonWireFixture(t *testing.T) {
 		fmt.Fprint(w, `{"Status":"Pass","Payload":{"PlanetRasiD1Sign":{"Name":"Libra","DegreesIn":8.5}}}`)
 	}))
 	defer server.Close()
-	result, err := NewClient("test-secret", WithBaseURL(server.URL), WithDefaultAyanamsa(AyanamsaLahiri)).
+	result, err := NewClient("test-secret", withTestServer(server.URL), WithDefaultAyanamsa(AyanamsaLahiri)).
 		PlanetRasiD1Sign(context.Background(), PlanetSun, testBirth(t))
 	if err != nil {
 		t.Fatal(err)
@@ -93,7 +94,7 @@ func TestResponseShapes(t *testing.T) {
 				fmt.Fprint(w, tc.body)
 			}))
 			defer server.Close()
-			result, err := NewClient("test-secret", WithBaseURL(server.URL)).GetAvailableSourceTexts(context.Background())
+			result, err := NewClient("test-secret", withTestServer(server.URL)).GetAvailableSourceTexts(context.Background())
 			if tc.failure != "" {
 				if err == nil || !strings.Contains(err.Error(), tc.failure) {
 					t.Fatalf("error: %v", err)
@@ -123,7 +124,7 @@ func TestOptionalArguments(t *testing.T) {
 		fmt.Fprint(w, `{"Payload":true}`)
 	}))
 	defer server.Close()
-	c := NewClient("", WithBaseURL(server.URL))
+	c := NewClient("", withTestServer(server.URL))
 	ctx := context.Background()
 	if _, err := c.SearchSourceText(ctx, "Saturn"); err != nil {
 		t.Fatal(err)
@@ -175,8 +176,8 @@ func TestConcurrentClientsAndContexts(t *testing.T) {
 		fmt.Fprint(w, `{"Payload":true}`)
 	}))
 	defer server.Close()
-	a := NewClient("client-a", WithBaseURL(server.URL), WithDefaultAyanamsa(AyanamsaRaman))
-	b := NewClient("client-b", WithBaseURL(server.URL), WithDefaultAyanamsa(AyanamsaKrishnamurti))
+	a := NewClient("client-a", withTestServer(server.URL), WithDefaultAyanamsa(AyanamsaRaman))
+	b := NewClient("client-b", withTestServer(server.URL), WithDefaultAyanamsa(AyanamsaKrishnamurti))
 	parent := WithAyanamsa(context.Background(), AyanamsaRaman)
 	var wg sync.WaitGroup
 	for i := 0; i < 12; i++ {
@@ -213,7 +214,7 @@ func TestCancellationAndTimeout(t *testing.T) {
 	}))
 	defer server.Close()
 	defer close(release)
-	c := NewClient("", WithBaseURL(server.URL), WithTimeout(30*time.Millisecond))
+	c := NewClient("", withTestServer(server.URL), WithTimeout(30*time.Millisecond))
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	if _, err := c.GetAvailableSourceTexts(ctx); !errors.Is(err, context.Canceled) {
@@ -225,8 +226,7 @@ func TestCancellationAndTimeout(t *testing.T) {
 }
 
 func TestInvalidConfiguration(t *testing.T) {
-	for _, option := range []ClientOption{WithBaseURL("not a URL"), WithBaseURL("https://user:secret@example.com"),
-		WithTimeout(0), WithHTTPClient(nil), WithDefaultAyanamsa("unknown")} {
+	for _, option := range []ClientOption{WithTimeout(0), WithHTTPClient(nil), WithDefaultAyanamsa("unknown")} {
 		if _, err := NewClient("secret", option).GetAvailableSourceTexts(context.Background()); err == nil {
 			t.Fatal("invalid configuration accepted")
 		}
@@ -254,7 +254,7 @@ func TestNoDeadlineByDefault(t *testing.T) {
 	slowButFine := make(chan error, 1)
 	go func() {
 		// No WithTimeout: the call should wait for the server rather than give up.
-		_, err := NewClient("", WithBaseURL(server.URL)).GetAvailableSourceTexts(context.Background())
+		_, err := NewClient("", withTestServer(server.URL)).GetAvailableSourceTexts(context.Background())
 		slowButFine <- err
 	}()
 
@@ -316,4 +316,24 @@ func TestGeneratedMethodSurface(t *testing.T) {
 			t.Errorf("signature mismatch: %s", entry.Name)
 		}
 	}
+}
+
+// Keep local socket coverage while asserting that production requests use the SDK address.
+func withTestServer(target string) ClientOption {
+	return WithHTTPClient(&http.Client{Transport: contractTransport(func(request *http.Request) (*http.Response, error) {
+		if !strings.HasPrefix(request.URL.String(), apiEndpoint+"/") {
+			return nil, fmt.Errorf("unexpected service address: %s", request.URL)
+		}
+		destination, err := url.Parse(target)
+		if err != nil {
+			return nil, err
+		}
+		forwarded := request.Clone(request.Context())
+		copiedURL := *request.URL
+		forwarded.URL = &copiedURL
+		forwarded.URL.Scheme = destination.Scheme
+		forwarded.URL.Host = destination.Host
+		forwarded.URL.Path = strings.TrimPrefix(request.URL.Path, "/api/Calculate")
+		return http.DefaultTransport.RoundTrip(forwarded)
+	})})
 }
